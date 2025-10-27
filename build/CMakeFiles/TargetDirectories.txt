@@ -1,0 +1,3 @@
+/home/gregory/sem7/build/CMakeFiles/app.dir
+/home/gregory/sem7/build/CMakeFiles/edit_cache.dir
+/home/gregory/sem7/build/CMakeFiles/rebuild_cache.dir
