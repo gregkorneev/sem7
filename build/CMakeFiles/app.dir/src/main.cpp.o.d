@@ -186,7 +186,10 @@ CMakeFiles/app.dir/src/main.cpp.o: /home/gregory/sem7/src/main.cpp \
  /usr/include/c++/13/bits/locale_facets_nonio.tcc \
  /usr/include/c++/13/bits/locale_conv.h \
  /usr/include/c++/13/bits/quoted_string.h /usr/include/c++/13/sstream \
- /usr/include/c++/13/bits/sstream.tcc \
+ /usr/include/c++/13/bits/sstream.tcc /usr/include/c++/13/fstream \
+ /usr/include/c++/13/x86_64-alt-linux/bits/basic_file.h \
+ /usr/include/c++/13/x86_64-alt-linux/bits/c++io.h \
+ /usr/include/c++/13/bits/fstream.tcc \
  /home/gregory/sem7/include/CacheBase.h /usr/include/c++/13/optional \
  /usr/include/c++/13/bits/enable_special_members.h \
  /home/gregory/sem7/include/LRU.h /usr/include/c++/13/list \

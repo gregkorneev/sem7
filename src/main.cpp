@@ -4,6 +4,8 @@
 #include <chrono>
 #include <memory>
 #include <iomanip>
+#include <fstream>
+#include <string>
 #include "CacheBase.h"
 #include "LRU.h"
 #include "LFU.h"
@@ -39,8 +41,9 @@ long long runScenario(ICache& cache, const std::vector<int>& ops) {
     return std::chrono::duration_cast<Ns>(t1 - t0).count();
 }
 
-// >>> Локализованный вывод метрик
-void printMetrics(const char* name, const ICache& c, long long elapsed_ns, int total_ops) {
+// Локализованный вывод метрик и запись в CSV
+void printMetrics(const char* name, const char* algo, const char* impl,
+                  const ICache& c, long long elapsed_ns, int total_ops, std::ofstream& csv) {
     const auto& cnt = c.counters();
     double hitRate = (cnt.hits + cnt.misses) ? (double)cnt.hits / (cnt.hits + cnt.misses) * 100.0 : 0.0;
     double missRate = 100.0 - hitRate;
@@ -57,13 +60,26 @@ void printMetrics(const char* name, const ICache& c, long long elapsed_ns, int t
     std::cout << "Процент промахов (Miss Rate): " << missRate << "%\n";
     std::cout << "Среднее время одной операции: " << avgTimeNs << " нс\n";
     std::cout << "Производительность: " << opsPerSec << " операций/сек\n";
+
+    // CSV: algo,impl,capacity,size,total_ops,gets,puts,evictions,hit_rate,miss_rate,avg_ns,ops_per_sec,elapsed_ns
+    if (csv) {
+        csv << algo << "," << impl << "," << c.capacity() << "," << c.size() << ","
+            << total_ops << "," << cnt.gets << "," << cnt.puts << "," << cnt.evictions << ","
+            << std::fixed << std::setprecision(4) << hitRate << "," << missRate << ","
+            << avgTimeNs << "," << opsPerSec << "," << elapsed_ns << "\n";
+    }
 }
 
 int main() {
+    // Параметры базового прогона
     const int capacity = 128;         // ёмкость кэша
     const int total_ops = 20000;      // операций
     const int universe = 2000;        // диапазон ключей
     auto ops = makeWorkload(total_ops, universe, 0.75);
+
+    // CSV для суммарных метрик
+    std::ofstream csv("results.csv");
+    csv << "algo,impl,capacity,size,total_ops,gets,puts,evictions,hit_rate,miss_rate,avg_ns,ops_per_sec,elapsed_ns\n";
 
     // 4 реализации
     LRUCacheIter lru_it(capacity);
@@ -76,10 +92,11 @@ int main() {
     long long t_lfu_it = runScenario(lfu_it, ops);
     long long t_lfu_rec = runScenario(lfu_rec, ops);
 
-    printMetrics("LRU (итеративный)", lru_it, t_lru_it, total_ops + capacity/2);
-    printMetrics("LRU (рекурсивный)", lru_rec, t_lru_rec, total_ops + capacity/2);
-    printMetrics("LFU (итеративный)", lfu_it, t_lfu_it, total_ops + capacity/2);
-    printMetrics("LFU (рекурсивный)", lfu_rec, t_lfu_rec, total_ops + capacity/2);
+    printMetrics("LRU (итеративный)", "LRU", "iter", lru_it, t_lru_it, total_ops + capacity/2, csv);
+    printMetrics("LRU (рекурсивный)", "LRU", "rec",  lru_rec, t_lru_rec, total_ops + capacity/2, csv);
+    printMetrics("LFU (итеративный)", "LFU", "iter", lfu_it, t_lfu_it, total_ops + capacity/2, csv);
+    printMetrics("LFU (рекурсивный)", "LFU", "rec",  lfu_rec, t_lfu_rec, total_ops + capacity/2, csv);
+    csv.close();
 
     // Сравнение (Speedup Ratio)
     std::cout << "\n===== Сравнение производительности =====\n";
@@ -90,5 +107,58 @@ int main() {
               << (double)t_lfu_rec / (double)t_lfu_it << "\n";
     std::cout << "Отношение LRU/LFU (итеративных): "
               << (double)t_lru_it / (double)t_lfu_it << "\n";
+
+    // ===== Тест масштабируемости (Time Complexity by Size) =====
+    std::vector<int> sizes = {16, 32, 64, 128, 256, 512, 1024};
+    std::ofstream scsv("scalability.csv");
+    scsv << "size,algo,impl,elapsed_ns,avg_ns,ops_per_sec,hit_rate\n";
+
+    for (int cap : sizes) {
+        auto workload = makeWorkload(15000, 4000, 0.75);
+
+        // ИТЕРАЦИОННЫЕ
+        {
+            LRUCacheIter c(cap);
+            auto t = runScenario(c, workload);
+            const auto& cnt = c.counters();
+            double hitRate = (cnt.hits + cnt.misses) ? (double)cnt.hits / (cnt.hits + cnt.misses) * 100.0 : 0.0;
+            double avg = (double)t / (workload.size() + cap/2);
+            double opsps = (double)(workload.size() + cap/2) / (t / 1e9);
+            scsv << cap << ",LRU,iter," << t << "," << avg << "," << opsps << "," << hitRate << "\n";
+        }
+        {
+            LFUCacheIter c(cap);
+            auto t = runScenario(c, workload);
+            const auto& cnt = c.counters();
+            double hitRate = (cnt.hits + cnt.misses) ? (double)cnt.hits / (cnt.hits + cnt.misses) * 100.0 : 0.0;
+            double avg = (double)t / (workload.size() + cap/2);
+            double opsps = (double)(workload.size() + cap/2) / (t / 1e9);
+            scsv << cap << ",LFU,iter," << t << "," << avg << "," << opsps << "," << hitRate << "\n";
+        }
+
+        // РЕКУРСИВНЫЕ
+        {
+            LRUCacheRec c(cap);
+            auto t = runScenario(c, workload);
+            const auto& cnt = c.counters();
+            double hitRate = (cnt.hits + cnt.misses) ? (double)cnt.hits / (cnt.hits + cnt.misses) * 100.0 : 0.0;
+            double avg = (double)t / (workload.size() + cap/2);
+            double opsps = (double)(workload.size() + cap/2) / (t / 1e9);
+            scsv << cap << ",LRU,rec," << t << "," << avg << "," << opsps << "," << hitRate << "\n";
+        }
+        {
+            LFUCacheRec c(cap);
+            auto t = runScenario(c, workload);
+            const auto& cnt = c.counters();
+            double hitRate = (cnt.hits + cnt.misses) ? (double)cnt.hits / (cnt.hits + cnt.misses) * 100.0 : 0.0;
+            double avg = (double)t / (workload.size() + cap/2);
+            double opsps = (double)(workload.size() + cap/2) / (t / 1e9);
+            scsv << cap << ",LFU,rec," << t << "," << avg << "," << opsps << "," << hitRate << "\n";
+        }
+    }
+    scsv.close();
+
+    std::cout << "\nCSV-файлы сохранены: results.csv и scalability.csv\n";
+    std::cout << "Их можно использовать для построения графиков Python-скриптом plot_metrics.py\n";
     return 0;
 }
