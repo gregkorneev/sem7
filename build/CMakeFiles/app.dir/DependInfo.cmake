@@ -10,6 +10,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/gregory/sem7/src/LFU.cpp" "CMakeFiles/app.dir/src/LFU.cpp.o" "gcc" "CMakeFiles/app.dir/src/LFU.cpp.o.d"
   "/home/gregory/sem7/src/LRU.cpp" "CMakeFiles/app.dir/src/LRU.cpp.o" "gcc" "CMakeFiles/app.dir/src/LRU.cpp.o.d"
+  "/home/gregory/sem7/src/Metrics.cpp" "CMakeFiles/app.dir/src/Metrics.cpp.o" "gcc" "CMakeFiles/app.dir/src/Metrics.cpp.o.d"
   "/home/gregory/sem7/src/main.cpp" "CMakeFiles/app.dir/src/main.cpp.o" "gcc" "CMakeFiles/app.dir/src/main.cpp.o.d"
   "" "app" "gcc" "CMakeFiles/app.dir/link.d"
   )

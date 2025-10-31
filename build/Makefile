@@ -177,6 +177,30 @@ src/LRU.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/app.dir/build.make CMakeFiles/app.dir/src/LRU.cpp.s
 .PHONY : src/LRU.cpp.s
 
+src/Metrics.o: src/Metrics.cpp.o
+.PHONY : src/Metrics.o
+
+# target to build an object file
+src/Metrics.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/app.dir/build.make CMakeFiles/app.dir/src/Metrics.cpp.o
+.PHONY : src/Metrics.cpp.o
+
+src/Metrics.i: src/Metrics.cpp.i
+.PHONY : src/Metrics.i
+
+# target to preprocess a source file
+src/Metrics.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/app.dir/build.make CMakeFiles/app.dir/src/Metrics.cpp.i
+.PHONY : src/Metrics.cpp.i
+
+src/Metrics.s: src/Metrics.cpp.s
+.PHONY : src/Metrics.s
+
+# target to generate assembly for a file
+src/Metrics.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/app.dir/build.make CMakeFiles/app.dir/src/Metrics.cpp.s
+.PHONY : src/Metrics.cpp.s
+
 src/main.o: src/main.cpp.o
 .PHONY : src/main.o
 
@@ -216,6 +240,9 @@ help:
 	@echo "... src/LRU.o"
 	@echo "... src/LRU.i"
 	@echo "... src/LRU.s"
+	@echo "... src/Metrics.o"
+	@echo "... src/Metrics.i"
+	@echo "... src/Metrics.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"

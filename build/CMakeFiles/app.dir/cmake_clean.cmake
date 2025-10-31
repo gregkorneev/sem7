@@ -4,6 +4,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/app.dir/src/LFU.cpp.o.d"
   "CMakeFiles/app.dir/src/LRU.cpp.o"
   "CMakeFiles/app.dir/src/LRU.cpp.o.d"
+  "CMakeFiles/app.dir/src/Metrics.cpp.o"
+  "CMakeFiles/app.dir/src/Metrics.cpp.o.d"
   "CMakeFiles/app.dir/src/main.cpp.o"
   "CMakeFiles/app.dir/src/main.cpp.o.d"
   "app"

@@ -1,19 +1,7 @@
 #pragma once
-/**
- * Common cache interface + operation counters used by metrics.
- *
- * Мы делаем общий интерфейс ICache, чтобы одинаково работать с четырьмя реализациями:
- * - LRUCacheIter  (итеративный LRU)
- * - LRUCacheRec   (рекурсивный LRU)
- * - LFUCacheIter  (итеративный LFU)
- * - LFUCacheRec   (рекурсивный LFU)
- *
- * Все кэши поддерживают put(key, value) и get(key) -> optional<int>.
- * Дополнительно возвращаем счётчики операций (hits/misses/puts/gets/evictions),
- * чтобы легко считать метрики в main.cpp.
- */
 #include <optional>
 #include <cstddef>
+#include <functional>
 
 struct OpCounters {
     long long hits = 0;
@@ -22,6 +10,8 @@ struct OpCounters {
     long long gets = 0;
     long long evictions = 0;
 };
+
+extern std::function<void(int)> g_on_evict_key;
 
 class ICache {
 public:
