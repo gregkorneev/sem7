@@ -1,60 +1,17 @@
-# === CMake build directories ===
+# build artifacts
 /build/
-/out/
-/bin/
-/lib/
-/CMakeFiles/
-/CMakeCache.txt
-/cmake_install.cmake
-/Makefile
-/Testing/
-/_compile_commands.json
-/compile_commands.json
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
 
-# === Executables & objects ===
-*.o
-*.obj
-*.lo
-*.la
-*.a
-*.so
-*.dylib
-*.dll
-*.exe
-*.out
-*.app
+# results / charts
+*.csv
+*.png
+*.svg
 
-# === Editor/IDE junk ===
-*.swp
-*.swo
-*.tmp
-*.log
-*.DS_Store
-Thumbs.db
+# OS / IDE
+.DS_Store
+*.user
 .vscode/
 .idea/
-*.user
-*.kate-swp
-
-# === Python cache ===
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-*.egg-info/
-
-# === Generated experiment data ===
-# CSV с метриками
-/results.csv
-/scalability.csv
-
-# Графики
-/*.png
-/scalability_time.png
-/scalability_hit_rate.png
-/results_ops.png
-
-# === Archives ===
-*.zip
-*.tar
-*.tar.gz
