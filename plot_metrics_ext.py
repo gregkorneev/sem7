@@ -1,7 +1,9 @@
+
 """
-Графики по расширенным CSV (matplotlib без seaborn).
+Расширенные графики метрик (matplotlib без seaborn).
+Добавлено: график прогрева кэша (warmup.csv).
 """
-import csv, os, argparse
+import csv, os
 from collections import defaultdict
 import matplotlib.pyplot as plt
 
@@ -16,8 +18,7 @@ def to_float(d, key, default=0.0):
     except Exception:
         return default
 
-def resolve_path(name, cli):
-    if cli and os.path.exists(cli): return cli
+def resolve_path(name):
     if os.path.exists(name): return name
     alt = os.path.join("build", name)
     if os.path.exists(alt): return alt
@@ -44,21 +45,12 @@ def barplot(labels, values, title, ylabel, outfile):
     plt.savefig(outfile, dpi=150)
 
 def main():
-    import argparse
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--results", default=None)
-    ap.add_argument("--scal", default=None)
-    ap.add_argument("--stability", default=None)
-    ap.add_argument("--eff", default=None)
-    ap.add_argument("--roi", default=None)
-    args = ap.parse_args()
+    results = read_csv(resolve_path("results_extended.csv"))
+    scal    = read_csv(resolve_path("scalability_extended.csv"))
+    eff     = read_csv(resolve_path("efficiency_score.csv"))
+    roi     = read_csv(resolve_path("roi.csv"))
 
-    results = read_csv(resolve_path("results_extended.csv", args.results))
-    scal = read_csv(resolve_path("scalability_extended.csv", args.scal))
-    stab = read_csv(resolve_path("stability.csv", args.stability))
-    eff  = read_csv(resolve_path("efficiency_score.csv", args.eff))
-    roi  = read_csv(resolve_path("roi.csv", args.roi))
-
+    # Масштабируемость: Время vs Размер
     groups = defaultdict(list)
     for d in scal:
         key = f'{d["algo"]}-{d["impl"]}'
@@ -70,6 +62,7 @@ def main():
              "Масштабируемость: Время vs Размер", "Размер кэша", "Время (нс)",
              "scalability_time_ext.png")
 
+    # Hit Rate vs Размер
     groups_hr = defaultdict(list)
     for d in scal:
         key = f'{d["algo"]}-{d["impl"]}'
@@ -81,18 +74,41 @@ def main():
              "Качество кэширования: Hit Rate vs Размер", "Размер кэша", "Hit Rate (%)",
              "scalability_hit_ext.png")
 
+    # Эффективность вытеснений
     labels = [ f'{d["algo"]}-{d["impl"]}' for d in results ]
     values = [ to_float(d,"eviction_efficiency") for d in results ]
     barplot(labels, values, "Эффективность вытеснений (useful %)", "Доля полезных вытеснений, %",
             "eviction_eff_bar.png")
 
+    # Общая оценка эффективности
     labels2 = [ f'{d["algo"]}-{d["impl"]}' for d in eff ]
     values2 = [ to_float(d,"score") for d in eff ]
     barplot(labels2, values2, "Общая оценка эффективности", "Score (0..1+)", "efficiency_score.png")
 
+    # ROI
     labels3 = [ f'{d["algo"]}-{d["impl"]}' for d in roi ]
     values3 = [ to_float(d,"roi") for d in roi ]
     barplot(labels3, values3, "Экономическая эффективность (ROI)", "ROI (условные ед.)", "roi_bar.png")
+
+    # Прогрев кэша
+    try:
+        with open(resolve_path("warmup.csv"), newline="") as f:
+            import csv as _csv
+            r = _csv.DictReader(f)
+            steps, hr = [], []
+            for row in r:
+                steps.append(int(row["step"]))
+                hr.append(float(row["hit_rate"]))
+        plt.figure()
+        plt.plot(steps, hr, marker="o")
+        plt.title("Прогрев кэша (Hit Rate по окнам)")
+        plt.xlabel("Окно (по 1000 операций)")
+        plt.ylabel("Hit Rate (%)")
+        plt.grid(True)
+        plt.tight_layout()
+        plt.savefig("warmup_graph.png", dpi=150)
+    except FileNotFoundError:
+        print("warmup.csv не найден — пропускаю warmup_graph.png")
 
     print("Сохранены графики:")
     print(" - scalability_time_ext.png")
@@ -100,6 +116,7 @@ def main():
     print(" - eviction_eff_bar.png")
     print(" - efficiency_score.png")
     print(" - roi_bar.png")
+    print(" - warmup_graph.png (если был warmup.csv)")
 
 if __name__ == "__main__":
     main()

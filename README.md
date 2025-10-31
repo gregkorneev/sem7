@@ -1,1 +1,0 @@
-rm -rf build && cmake -B build && cmake --build build && cd ./build && ./app && cd .. && python3 plot_metrics_robust.py
